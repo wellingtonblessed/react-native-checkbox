@@ -1,7 +1,9 @@
 'use strict';
 
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+
+const PropTypes = require('prop-types');
+
 import {
     StyleSheet,
     Image,
@@ -19,16 +21,17 @@ class CheckBox extends Component {
 
         this.state = {
             internalChecked: false,
-            isDisabled : props.disabled
+            isDisabled : props.disabled,
+            checked : props.checked
         };
         this.baseState = this.state;
         this.onChange = this.onChange.bind(this);
     }
 
     onChange() {
-        if (this.props.onChange &&  typeof this.props.checked === 'boolean') {
-            // If passing the value as a prop, return the negation of current value
-            this.props.onChange(!this.props.checked);
+        if (this.props.onChange &&  typeof this.state.checked === 'boolean') {
+            this.props.onChange(this.state.checked);
+            this.setState({checked: !this.state.checked});
         } else {
             let internalChecked = this.state.internalChecked;
             let newState = !internalChecked;
@@ -59,8 +62,8 @@ class CheckBox extends Component {
 
         let source;
 
-        if(typeof this.props.checked === 'boolean') {
-          source = this.props.checked ? this.props.checkedImage : this.props.uncheckedImage;
+        if(typeof this.state.checked === 'boolean') {
+          source = this.state.checked ? this.props.checkedImage : this.props.uncheckedImage;
         } else {
           source = this.state.internalChecked ? this.props.checkedImage : this.props.uncheckedImage;
         }
@@ -70,19 +73,13 @@ class CheckBox extends Component {
             container = (
                 <View style={this.props.containerStyle || [styles.container, styles.flexContainer]}>
                     { (this.props.label ? (
-                      <View style={styles.labelContainer}
-                         accessible={this.props.accessible}
-                         accessibilityLabel={this.props.accessibilityLabel + 'Label'}
-                         testID={this.props.testID + 'Label'}>
+                      <View style={styles.labelContainer}>
                           <Text numberOfLines={this.props.labelLines} style={[styles.label, this.props.labelStyle]}>{this.props.label}</Text>
                       </View>
                     ) : <View></View>) }
                     <Image
                     style={[styles.checkbox, this.props.checkboxStyle]}
-                    source={source}
-                    accessible={this.props.accessible}
-                    accessibilityLabel={this.props.accessibilityLabel + 'Checkbox'}
-                    testID={this.props.testID + 'Checkbox'}/>
+                    source={source}/>
                 </View>
             );
         } else {
@@ -90,24 +87,18 @@ class CheckBox extends Component {
                 <View style={[styles.container, this.props.containerStyle]}>
                     <Image
                     style={[styles.checkbox, this.props.checkboxStyle]}
-                    source={source}
-                    accessible={this.props.accessible}
-                    accessibilityLabel={this.props.accessibilityLabel + 'Checkbox'}
-                    testID={this.props.testID + 'Checkbox'}/>
+                    source={source}/>
                     { (this.props.label ? (
-                    <View style={styles.labelContainer}
-                      accessible={this.props.accessible}
-                      accessibilityLabel={this.props.accessibilityLabel + 'Label'}
-                      testID={this.props.testID + 'Label'}>
-                        <Text numberOfLines={this.props.labelLines} style={[styles.label, this.props.labelStyle]}>{this.props.label}</Text>
-                    </View>
+                      <View style={styles.labelContainer}>
+                          <Text numberOfLines={this.props.labelLines} style={[styles.label, this.props.labelStyle]}>{this.props.label}</Text>
+                      </View>
                     ) : <View></View>) }
                 </View>
             );
         }
 
         return (
-            <TouchableHighlight accessible={this.props.accessible} accessibilityLabel={this.props.accessibilityLabel} testID={this.props.testID} onPress={this.onChange} underlayColor={this.props.underlayColor} style={styles.flexContainer} checkbox={this.props.hitSlop}>
+            <TouchableHighlight onPress={this.onChange} underlayColor={this.props.underlayColor} style={styles.flexContainer} disabled = {this.state.isDisabled}>
                 {container}
             </TouchableHighlight>
         );
@@ -115,7 +106,7 @@ class CheckBox extends Component {
 }
 
 var styles = StyleSheet.create({
-    flexContainer: {
+    container: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 5,
@@ -135,9 +126,6 @@ var styles = StyleSheet.create({
 });
 
 CheckBox.propTypes = {
-    accessible: PropTypes.bool,
-    accessibilityLabel: PropTypes.string,
-    testID: PropTypes.string,
     label: PropTypes.string,
     labelBefore: PropTypes.bool,
     labelStyle: PropTypes.oneOfType([PropTypes.array,PropTypes.object,PropTypes.number]),
@@ -148,8 +136,7 @@ CheckBox.propTypes = {
     checkedImage: PropTypes.number,
     uncheckedImage: PropTypes.number,
     underlayColor: PropTypes.string,
-    onChange: PropTypes.func,
-    hitSlop: PropTypes.object
+    onChange: PropTypes.func
 };
 
 CheckBox.defaultProps = {
